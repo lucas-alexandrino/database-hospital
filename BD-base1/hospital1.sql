@@ -90,16 +90,6 @@ CREATE TABLE IF NOT EXISTS enfermeiro_internacao (
 
 
 
--- PERGUNTAR PROFESSOR : COMO REALIZAR UMA CONEXÃO MANY TO MANY NO BD, RELACIONADO A ENFERMEIRO E INTERNAÇÃO.
--- CONSULTA USANDO A TABELA ACIMA
-
--- SELECT enfermeiro.id,internacao.id
--- FROM enfermeiro
--- INNER JOIN enfermeiro_internacao ON enfermeiro.id = enfermeiro_internacao.enfermeiro_id
--- INNER JOIN internacao ON enfermeiro_internacao.internacao_id = internacao.id
--- WHERE enfermeiro.id = '1';
---
-
 SELECT enfermeiro.id AS id_enfermeiro,internacao.id AS internacao_id
 FROM enfermeiro
 INNER JOIN enfermeiro_internacao ON enfermeiro.id = enfermeiro_internacao.enfermeiro_id
@@ -123,7 +113,7 @@ INSERT INTO pacientes (nome,data_nascimento,endereco,telefone,email,cpf,rg,conve
 INSERT INTO pacientes (nome,data_nascimento,endereco,telefone,email,cpf,rg,convenio_id) VALUES ('Paciente5','20040122','rua dos boboss','11989915357','lucas.alexalgooo@gmail.com','52311072819','574837111','0100');
 
 INSERT INTO medicos (cpf,nome,telefone,especialidades) VALUES ('5','Joao da silva','119915387','Otorrinolaringologista');
-INSERT INTO medicos (cpf,nome,telefone,especialidades) VALUES ('52911072343','JoaoZITO da silva','11989915347','Otorrinolaringologista,alguma outra');
+INSERT INTO medicos (cpf,nome,telefone,especialidades) VALUES ('52911072343','Rodrigues da silva','11989915347','Otorrinolaringologista,alguma outra');
 
 INSERT INTO enfermeiro (nome,cpf,cre) VALUES ('Enfermeiro do SUS','52911072756','CRE123');
 INSERT INTO enfermeiro_internacao (enfermeiro_id,internacao_id) VALUES ('1','5');
