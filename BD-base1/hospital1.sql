@@ -126,9 +126,7 @@ END //
 DELIMITER ;
 
 -- ALTERAÇÕES:
--- Removi campo especialidades de medico, e adicionei uma nova tabela N:N
--- Removi UNIQUE da data de consultas
--- Criei uma trigger  para validar se o convenio da consulta é o mesmo convenio atrelado no cadastro do paciente.
+-- Adicionei campo em_atividade na tabela medicos | Alterar DER do Workbench
 
 -- FAZER:
 -- CRIAR UMA TABELA DE CONVENIO:
@@ -297,6 +295,18 @@ INSERT INTO consultas (data, medico, paciente, valor, convenio, especialidade, r
 ('2020-11-30', 10, 3, 230.00, '120', 4, 2),
 ('2021-01-01', 4, 4, 175.00, '130', 3, 3);
 
+-- Updates de tabela EX4
+
+ALTER TABLE medicos
+ADD COLUMN em_atividade BOOLEAN DEFAULT 1;
+
+UPDATE medicos
+SET em_atividade = 0
+WHERE id IN (1, 2);
+
+UPDATE medicos
+SET em_atividade = 1
+WHERE id NOT IN (1, 2);
 
 
 
