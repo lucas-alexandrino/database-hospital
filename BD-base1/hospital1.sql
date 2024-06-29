@@ -53,6 +53,7 @@ CREATE TABLE  IF NOT EXISTS  consultas (
 );
 
 
+ 
 CREATE TABLE IF NOT EXISTS  tipo_quarto (
 	id INTEGER PRIMARY KEY AUTO_INCREMENT,
 	descricao VARCHAR(255),
@@ -81,6 +82,8 @@ CREATE TABLE IF NOT EXISTS internacao (
     FOREIGN KEY (medico) REFERENCES medicos(id),
     FOREIGN KEY (quarto) REFERENCES quartos(numero)
 );
+
+
 
 CREATE TABLE IF NOT EXISTS enfermeiro (
 	id INTEGER PRIMARY KEY AUTO_INCREMENT,
@@ -155,7 +158,7 @@ INSERT INTO medicos (cpf,nome,telefone) VALUES ('52911072350','Medico1','1198991
 INSERT INTO medicos (cpf,nome,telefone) VALUES ('52911072351','Medico2','11989915351');
 INSERT INTO medicos (cpf,nome,telefone) VALUES ('52911072352','Medico3','11989915352');
 INSERT INTO medicos (cpf,nome,telefone) VALUES ('52911072353','Medico4','11989915353');
-INSERT INTO medicos (cpf,nome,telefone) VALUES ('52911072354','Medico5','11989915354');
+INSERT INTO medicos (cpf,nome,telefone) VALUES ('52911072354','Gabriel','11989915354');
 INSERT INTO medicos (cpf,nome,telefone) VALUES ('52911072355','Medico6','11989915355');
 INSERT INTO medicos (cpf,nome,telefone) VALUES ('52911072356','Medico7','11989915356');
 INSERT INTO medicos (cpf,nome,telefone) VALUES ('52911072357','Medico8','11989915357');
@@ -191,7 +194,7 @@ INSERT INTO pacientes (nome,data_nascimento,endereco,telefone,email,cpf,rg) VALU
 INSERT INTO pacientes (nome,data_nascimento,endereco,telefone,email,cpf,rg) VALUES ('Paciente12','20040122','rua dos bobos','11989915357','email.sql@gmail.com','52311072861','574838161');
 INSERT INTO pacientes (nome,data_nascimento,endereco,telefone,email,cpf,rg) VALUES ('Paciente13','20040122','rua dos bobos','11989915357','email.sql@gmail.com','52311072862','574837162');
 INSERT INTO pacientes (nome,data_nascimento,endereco,telefone,email,cpf,rg) VALUES ('Paciente14','20040122','rua dos bobos','11989915357','email.sql@gmail.com','52311072863','574837163');
-INSERT INTO pacientes (nome,data_nascimento,endereco,telefone,email,cpf,rg) VALUES ('Paciente15','20040122','rua dos bobos','11989915357','email.sql@gmail.com','52311072864','574837164');
+INSERT INTO pacientes (nome,data_nascimento,endereco,telefone,email,cpf,rg) VALUES ('Paciente15','20080122','rua dos bobos','11989915357','email.sql@gmail.com','52311072864','574837164');
 
 -- Tipos de quarto padrão
 INSERT INTO tipo_quarto(descricao,valor_diaria) VALUES ("Quarto Apartamento","100");
@@ -308,5 +311,173 @@ UPDATE medicos
 SET em_atividade = 1
 WHERE id NOT IN (1, 2);
 
+-- Formulário 5 As Relíquias dos Dados
+
+-- Todos os dados e o valor médio das consultas do ano de 2020 e das que foram feitas sob convênio.
+-- Consultas de 2020
+SELECT * FROM consultas
+WHERE YEAR(data) = 2020;
+
+-- Valor médio das consultas de 2020
+SELECT AVG(valor) AS valor_medio_2020 FROM consultas
+WHERE YEAR(data) = 2020;
+
+-- Consultas feitas sob convênio
+SELECT * FROM consultas
+WHERE convenio IS NOT NULL;
+
+-- Valor médio das consultas feitas sob convênio
+SELECT AVG(valor) AS valor_medio_convenio FROM consultas
+WHERE convenio IS NOT NULL;
+
+-- Todos os dados das internações que tiveram data de alta maior que a data prevista para a alta.
+-- Internações com data de alta maior que a data prevista para alta
+SELECT * FROM internacao
+WHERE data_alta > data_prev_alta;
+
+-- Receituário completo da primeira consulta registrada com receituário associado.
 
 
+SELECT consultas.*, receita_medica.*
+FROM consultas
+JOIN receita_medica ON consultas.receita_id = receita_medica.id
+WHERE consultas.receita_id IS NOT NULL
+ORDER BY consultas.id ASC
+LIMIT 1;
+
+
+-- Selecionar consulta de maior valor não realizada sob convênio
+SELECT *
+FROM consultas
+WHERE convenio IS NULL
+ORDER BY valor DESC
+LIMIT 1;
+
+-- Selecionar consulta de menor valor não realizada sob convênio
+SELECT *
+FROM consultas
+WHERE convenio IS NULL
+ORDER BY valor ASC
+LIMIT 1;
+
+-- Combinar os resultados das duas consultas
+(SELECT *
+FROM consultas
+WHERE convenio IS NULL
+ORDER BY valor DESC
+LIMIT 1)
+UNION
+(SELECT *
+FROM consultas
+WHERE convenio IS NULL
+ORDER BY valor ASC
+LIMIT 1);
+
+-- Todos os dados das internações em seus respectivos quartos, calculando o total da internação a partir do valor de diária do quarto e o número de dias entre a entrada e a alta.
+SELECT 
+    i.*,
+    q.numero AS numero_quarto, 
+    tq.descricao AS tipo_quarto, 
+    tq.valor_diaria,
+    DATEDIFF(i.data_alta, i.data_entrada) AS dias_internacao,
+    DATEDIFF(i.data_alta, i.data_entrada) * tq.valor_diaria AS total_internacao
+FROM 
+    internacao i
+JOIN 
+    quartos q ON i.quarto = q.numero
+JOIN 
+    tipo_quarto tq ON q.tipo = tq.id
+ORDER BY 
+    i.id;
+
+-- Data, procedimento e número de quarto de internações em quartos do tipo “apartamento”
+
+SELECT data_alta,procedimento,quarto FROM internacao 
+
+JOIN 
+    quartos q ON internacao.quarto = q.numero
+JOIN 
+    tipo_quarto tq ON q.tipo = tq.id
+
+WHERE tq.id = 1;
+
+-- Nome do paciente, data da consulta e especialidade de todas as consultas em que os pacientes eram menores de 18 anos na data da consulta e cuja especialidade não seja “pediatria”, ordenando por data de realização da consulta.
+ 
+
+SELECT 
+    p.nome AS nome_paciente,
+    c.data AS data_consulta,
+    e.especialidade AS especialidade
+FROM 
+    consultas c
+JOIN 
+    pacientes p ON c.paciente = p.id
+JOIN 
+    especialidades e ON c.especialidade = e.id
+WHERE 
+    TIMESTAMPDIFF(YEAR, p.data_nascimento, c.data) < 18 
+    AND e.especialidade <> 'pediatria'
+ORDER BY 
+    c.data ASC;
+    
+
+-- Nome do paciente, nome do médico, data da internação e procedimentos das internações realizadas por médicos da especialidade “gastroenterologia”, que tenham acontecido em “enfermaria”.
+
+SELECT 
+    p.nome AS nome_paciente,
+    m.nome AS nome_medico,
+    i.data_entrada,
+    i.procedimento
+FROM 
+    internacao i
+JOIN 
+    pacientes p ON i.paciente = p.id
+JOIN 
+    medicos m ON i.medico = m.id
+JOIN 
+    medico_especialidade me ON m.id = me.medico_id
+JOIN 
+    especialidades e ON me.especialidade_id = e.id
+JOIN 
+    quartos q ON i.quarto = q.numero
+JOIN 
+    tipo_quarto tq ON q.tipo = tq.id
+WHERE 
+    e.especialidade = 'Gastroenterologia'
+    AND tq.descricao = 'Enfermaria';
+
+-- Os nomes dos médicos, seus CRMs e a quantidade de consultas que cada um realizou.
+
+SELECT 
+    m.nome AS nome_medico,
+    m.id AS CRM,
+    COUNT(c.id) AS quantidade_consultas
+FROM 
+    medicos m
+LEFT JOIN 
+    consultas c ON m.id = c.medico
+GROUP BY 
+    m.id, m.nome
+ORDER BY 
+    quantidade_consultas DESC;
+    
+-- Todos os médicos que tenham "Gabriel" no nome. 
+
+SELECT * FROM medicos WHERE nome="Gabriel";
+
+-- Os nomes, CREs e número de internações de enfermeiros que participaram de mais de uma internação.
+
+SELECT 
+    e.nome AS nome_enfermeiro,
+    e.cre AS CRE,
+    COUNT(ei.internacao_id) AS numero_internacoes
+FROM 
+    enfermeiro e
+JOIN 
+    enfermeiro_internacao ei ON e.id = ei.enfermeiro_id
+GROUP BY 
+    e.id
+HAVING 
+    COUNT(ei.internacao_id) > 1
+ORDER BY 
+    numero_internacoes DESC;
